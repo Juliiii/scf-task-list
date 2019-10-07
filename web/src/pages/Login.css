@@ -1,0 +1,16 @@
+
+
+#login .login-form {
+  margin: 0 auto;
+  width: 368px;
+}
+#login .login-form-forgot {
+  float: right;
+}
+#login .login-form-button {
+  width: 100%;
+}
+
+#login .ant-form-explain {
+  text-align: left;
+}

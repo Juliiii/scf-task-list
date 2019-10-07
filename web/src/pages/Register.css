@@ -1,0 +1,17 @@
+
+#register .register-form {
+  margin: 0 auto;
+  width: 368px;
+}
+
+#register .ant-form-explain {
+  text-align: left;
+}
+
+#register .sumbit-button-formitem {
+  text-align: left;
+}
+
+#register .submit-button {
+  width: 150px;
+}

@@ -1,0 +1,33 @@
+#task {
+  height: 100%;
+}
+
+#task .title {
+  color: white;
+  float: left;
+}
+
+#task .logout {
+  float: right;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#task .logout-icon {
+  color: white;
+  font-size: 18px;
+  margin-left: 5px;
+}
+
+#task .task-body {
+  width: 70%;
+  margin: 20px auto;
+}
+
+#task .task-body-title {
+  text-align: left;
+}
+
