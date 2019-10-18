@@ -1,109 +1,184 @@
-import React from 'react';
+import React from "react";
+import InfiniteScroll from "react-infinite-scroller";
 import {
   Layout,
   Icon,
   List,
   Button,
   Skeleton,
-  Card
-} from 'antd';
-import './Task.css'
+  Card,
+  Modal,
+  Form,
+  Input,
+  Radio,
+  Spin
+} from "antd";
+import "./Task.css";
 
 const { Header } = Layout;
 
-
 class LoadMoreList extends React.Component {
   state = {
-    initLoading: true,
     loading: false,
-    data: [],
-    list: [],
+    hasMore: true,
+    visable: false,
+    isEdit: false,
+    list: []
   };
 
-  componentDidMount() {
-    this.getData(res => {
-      this.setState({
-        initLoading: false,
-        data: [{A:"今天要好好学习"}],
-        list: [{A:"今天要好好学习"}],
-      });
-    });
-  }
-
-  getData = callback => {
-    callback([])
+  getData = async () => {
+    return [
+      { A: "今天要好好学习" },
+      { A: "今天要好好学习" },
+      { A: "今天要好好学习" },
+      { A: "今天要好好学习" },
+      { A: "今天要好好学习" },
+      { A: "今天要好好学习" },
+      { A: "今天要好好学习" }
+    ];
   };
 
-  onLoadMore = () => {
+  showModal = isEdit => {
     this.setState({
-      loading: true,
-      list: this.state.data.concat([...new Array(10)].map(() => ({ loading: true, name: {} }))),
+      visable: true,
+      isEdit
     });
-    this.getData(res => {
-      const data = this.state.data.concat(res);
-      this.setState(
-        {
-          data,
-          list: data,
-          loading: false,
-        },
-        () => {
-          // Resetting window's offsetTop so as to display react-virtualized demo underfloor.
-          // In real scene, you can using public method of react-virtualized:
-          // https://stackoverflow.com/questions/46700726/how-to-use-public-method-updateposition-of-react-virtualized
-          window.dispatchEvent(new Event('resize'));
-        },
-      );
+  };
+
+  hideModal = () => {
+    this.setState({
+      visable: false
+    });
+  };
+
+  createTask = async () => {};
+
+  updateTask = async () => {};
+
+  deleteTask = async () => {};
+
+  reload = async () => {
+    this.setState({
+      loading: false,
+      hasMore: true,
+      visable: false,
+      isEdit: false,
+      list: []
+    });
+
+    this.getData();
+  };
+
+  handleInfiniteOnLoad = async () => {
+    let { list } = this.state;
+    this.setState({
+      loading: true
+    });
+
+    const res = await this.getData();
+
+    list = list.concat(res);
+    this.setState({
+      list,
+      loading: false
     });
   };
 
   render() {
-    const { type } = this.props
-    const { initLoading, loading, list } = this.state;
-    const loadMore =
-      !initLoading && !loading ? (
-        <div
-          style={{
-            textAlign: 'center',
-            marginTop: 12,
-            height: 32,
-            lineHeight: '32px',
-          }}
-        >
-          <Button onClick={this.onLoadMore}>loading more</Button>
-        </div>
-      ) : null;
+    const { type } = this.props;
+    const { list, isEdit, visable, loading, hasMore } = this.state;
 
+    const isRunning = type === "running";
 
-    const isRunning = type === 'running'
     return (
       <Card className="task-body">
-        {isRunning &&
-          <div style={{ textAlign: 'left', marginBottom: 10 }}>
-            <Button type="primary">
+        {isRunning && (
+          <div style={{ textAlign: "left", marginBottom: 10 }}>
+            <Button type="primary" onClick={() => this.showModal(false)}>
               Add
             </Button>
           </div>
-        }
-        <h3 className="task-body-title">{isRunning ? '进行中的任务' : '已完成的任务'}</h3>
-        <List
-          className="demo-loadmore-list"
-          loading={initLoading}
-          itemLayout="horizontal"
-          loadMore={loadMore}
-          dataSource={list}
-          renderItem={item => (
-            <List.Item
-              actions={[isRunning ? <a href="https://ant.design" key="list-loadmore-edit">edit</a> : null, <a href="https://ant.design" key="list-loadmore-more">delete</a>].filter(o => !!o)}
-            >
-              <Skeleton avatar title={false} loading={false} active>
-                <List.Item.Meta
-                  title={<div style={{ textAlign: 'left' }}>{item.A}</div>}
-                />
-              </Skeleton>
-            </List.Item>
-          )}
-        />
+        )}
+
+        <h3 className="task-body-title">
+          {isRunning ? "进行中的任务" : "已完成的任务"}
+        </h3>
+        <div className="task-list">
+          <InfiniteScroll
+            pageStart={0}
+            useWindow={false}
+            loadMore={this.handleInfiniteOnLoad}
+            hasMore={!loading && hasMore}
+          >
+            <List
+              dataSource={list}
+              renderItem={item => (
+                <List.Item
+                  actions={[
+                    isRunning ? (
+                      <Button
+                        type="link"
+                        key="list-loadmore-edit"
+                        onClick={() => this.showModal(true)}
+                      >
+                        edit
+                      </Button>
+                    ) : null,
+                    <Button
+                      type="link"
+                      key="list-loadmore-delete"
+                      onClick={() => this.showModal(true)}
+                    >
+                      delete
+                    </Button>
+                  ].filter(o => !!o)}
+                >
+                  <Skeleton avatar title={false} loading={false} active>
+                    <List.Item.Meta
+                      title={
+                        <div
+                          style={{
+                            textAlign: "left",
+                            color: isRunning ? "#000" : "gray"
+                          }}
+                        >
+                          <Radio
+                            disabled={!isRunning}
+                            checked={!isRunning}
+                            onClick={() => {}}
+                          />
+                          {item.A}
+                        </div>
+                      }
+                    />
+                  </Skeleton>
+                </List.Item>
+              )}
+            />
+
+            {loading && hasMore && (
+              <div className="demo-loading-container">
+                <Spin />
+              </div>
+            )}
+          </InfiniteScroll>
+        </div>
+        <Modal
+          title={isEdit ? "编辑任务" : "创建任务"}
+          visible={visable}
+          onOk={() => {}}
+          onCancel={this.hideModal}
+        >
+          <Form>
+            <Form.Item>
+              <Input
+                value={"123"}
+                onChange={e => {}}
+                placeholder="请输入你要进行的任务"
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
       </Card>
     );
   }
@@ -113,22 +188,19 @@ function App() {
   return (
     <Layout id="task">
       <Header theme="light">
-        <h3 className="title">
-          任务清单
-        </h3>
+        <h3 className="title">任务清单</h3>
 
         <span className="logout">
           退出登录
           <Icon className="logout-icon" type="logout" />
         </span>
       </Header>
+
       <LoadMoreList type="running" />
 
       <LoadMoreList type="done" />
     </Layout>
   );
 }
-
-
 
 export default App;

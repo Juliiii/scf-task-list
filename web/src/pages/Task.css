@@ -31,3 +31,7 @@
   text-align: left;
 }
 
+#task .task-list {
+  height: 500px;
+  overflow: auto;
+}
