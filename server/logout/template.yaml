@@ -32,8 +32,9 @@ Resources:
             Type: APIGW
             Properties:
               StageName: release
+              IntegratedResponse: true
               ServiceId: service-raqe67vw
-              HttpMethod: ANY
+              HttpMethod: POST
 
 Globals:
   Function:

@@ -79,10 +79,4 @@ app.use(async ctx => {
   return "登录成功";
 });
 
-const handler = serverless(app);
-
-exports.main_handler = async (event, context, callback) => {
-  const result = await handler(event, context);
-
-  return result;
-};
+exports.main_handler = serverless(app);
