@@ -5,6 +5,7 @@ const Koa = require("koa"); // or any supported framework
 const bodyParser = require("koa-bodyparser");
 const database = require("scf-nodejs-serverlessdb-sdk").database;
 const Joi = require("joi");
+const cors = require("koa2-cors");
 
 const userSchema = Joi.object({
   user: Joi.string()
@@ -18,6 +19,7 @@ const userSchema = Joi.object({
 });
 
 const app = new Koa();
+app.use(cors());
 
 if (process.env.NODE_ENV !== "production") {
   process.env["DB_DEFAULT"] = "DB1";

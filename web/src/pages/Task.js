@@ -1,5 +1,6 @@
 import React from "react";
 import InfiniteScroll from "react-infinite-scroller";
+import axios from "../libs/axios";
 import {
   Layout,
   Icon,
@@ -11,11 +12,12 @@ import {
   Form,
   Input,
   Radio,
-  Spin
+  Spin,
+  message
 } from "antd";
 import "./Task.css";
 
-const { Header } = Layout;
+const { Header: AntdHeader } = Layout;
 
 class LoadMoreList extends React.Component {
   state = {
@@ -23,19 +25,20 @@ class LoadMoreList extends React.Component {
     hasMore: true,
     visable: false,
     isEdit: false,
+    page: 0,
+    pageSize: 20,
     list: []
   };
 
   getData = async () => {
-    return [
-      { A: "今天要好好学习" },
-      { A: "今天要好好学习" },
-      { A: "今天要好好学习" },
-      { A: "今天要好好学习" },
-      { A: "今天要好好学习" },
-      { A: "今天要好好学习" },
-      { A: "今天要好好学习" }
-    ];
+    const { page, pageSize } = this.state;
+
+    const result = await axios.post("/listTasks", {
+      offset: page * pageSize,
+      limit: pageSize
+    });
+
+    return result.data.list;
   };
 
   showModal = isEdit => {
@@ -51,6 +54,12 @@ class LoadMoreList extends React.Component {
     });
   };
 
+  changeEditTask = editTask => {
+    this.setState({
+      editTask
+    });
+  };
+
   createTask = async () => {};
 
   updateTask = async () => {};
@@ -63,10 +72,11 @@ class LoadMoreList extends React.Component {
       hasMore: true,
       visable: false,
       isEdit: false,
+      editTask: "",
       list: []
     });
 
-    this.getData();
+    await this.handleInfiniteOnLoad();
   };
 
   handleInfiniteOnLoad = async () => {
@@ -82,11 +92,17 @@ class LoadMoreList extends React.Component {
       list,
       loading: false
     });
+
+    if (!res.length) {
+      this.setState({
+        hasMore: false
+      });
+    }
   };
 
   render() {
     const { type } = this.props;
-    const { list, isEdit, visable, loading, hasMore } = this.state;
+    const { list, isEdit, visable, loading, hasMore, editTask } = this.state;
 
     const isRunning = type === "running";
 
@@ -166,14 +182,16 @@ class LoadMoreList extends React.Component {
         <Modal
           title={isEdit ? "编辑任务" : "创建任务"}
           visible={visable}
-          onOk={() => {}}
+          onOk={async () => {
+            return isEdit ? this.editTask() : this.createTask();
+          }}
           onCancel={this.hideModal}
         >
           <Form>
             <Form.Item>
               <Input
-                value={"123"}
-                onChange={e => {}}
+                value={editTask}
+                onChange={e => this.changeEditTask(e.target.value)}
                 placeholder="请输入你要进行的任务"
               />
             </Form.Item>
@@ -184,17 +202,33 @@ class LoadMoreList extends React.Component {
   }
 }
 
+function Header() {
+  const logout = async () => {
+    await axios.post("/logout", {});
+
+    message.success("退出登录成功");
+
+    setTimeout(() => {
+      window.location = "/login";
+    }, 500);
+  };
+
+  return (
+    <AntdHeader theme="light">
+      <h3 className="title">任务清单</h3>
+
+      <span className="logout" onClick={logout}>
+        退出登录
+        <Icon className="logout-icon" type="logout" />
+      </span>
+    </AntdHeader>
+  );
+}
+
 function App() {
   return (
     <Layout id="task">
-      <Header theme="light">
-        <h3 className="title">任务清单</h3>
-
-        <span className="logout">
-          退出登录
-          <Icon className="logout-icon" type="logout" />
-        </span>
-      </Header>
+      <Header />
 
       <LoadMoreList type="running" />
 
