@@ -9,8 +9,8 @@ const Store = require("./Store");
 const cors = require("koa2-cors");
 
 const app = new Koa();
-app.use(cors());
 
+app.use(cors());
 app.use(bodyParser());
 
 app.use(
@@ -52,7 +52,7 @@ app.use(async ctx => {
   const connection = await database().connection();
 
   const totalList = await connection.queryAsync(
-    "select * from tasks where user = ? and status = ?",
+    "select * from tasks where user =?  and status = ?",
     [user, +status]
   );
 

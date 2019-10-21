@@ -13,29 +13,45 @@ import {
   Input,
   Radio,
   Spin,
-  message
+  message,
+  Popconfirm
 } from "antd";
+import EventEmitter from "events";
 import "./Task.css";
 
 const { Header: AntdHeader } = Layout;
+const ee = new EventEmitter();
+
+const defaultState = {
+  loading: false,
+  hasMore: true,
+  visable: false,
+  isEdit: false,
+  page: 0,
+  pageSize: 20,
+  editTask: { title: "", status: 0 },
+  list: []
+};
 
 class LoadMoreList extends React.Component {
-  state = {
-    loading: false,
-    hasMore: true,
-    visable: false,
-    isEdit: false,
-    page: 0,
-    pageSize: 20,
-    list: []
-  };
+  state = defaultState;
+
+  componentDidMount() {
+    ee.on("reload", this.reload);
+  }
+
+  componentWillUnmount() {
+    ee.off("reload", this.reload);
+  }
 
   getData = async () => {
     const { page, pageSize } = this.state;
+    const { type } = this.props;
 
     const result = await axios.post("/listTasks", {
       offset: page * pageSize,
-      limit: pageSize
+      limit: pageSize,
+      status: type === "done" ? 1 : 0
     });
 
     return result.data.list;
@@ -50,37 +66,79 @@ class LoadMoreList extends React.Component {
 
   hideModal = () => {
     this.setState({
-      visable: false
-    });
-  };
-
-  changeEditTask = editTask => {
-    this.setState({
-      editTask
-    });
-  };
-
-  createTask = async () => {};
-
-  updateTask = async () => {};
-
-  deleteTask = async () => {};
-
-  reload = async () => {
-    this.setState({
-      loading: false,
-      hasMore: true,
       visable: false,
-      isEdit: false,
-      editTask: "",
-      list: []
+      editTask: { ...defaultState.editTask }
     });
+  };
+
+  changeEditTask = (editTask, cb) => {
+    this.setState(
+      {
+        editTask
+      },
+      () => {
+        cb && cb();
+      }
+    );
+  };
+
+  createTask = async () => {
+    const { editTask } = this.state;
+    await axios.post("/createTasks", {
+      title: editTask.title,
+      status: 0
+    });
+    this.hideModal();
+    ee.emit("reload", "running");
+  };
+
+  updateTask = async updateField => {
+    const { editTask } = this.state;
+
+    const isUpdateTitle = updateField === "title";
+
+    const body = isUpdateTitle
+      ? {
+          ...editTask,
+          title: editTask.title,
+          taskId: editTask.id
+        }
+      : {
+          ...editTask,
+          taskId: editTask.id,
+          status: +!editTask.status
+        };
+
+    await axios.post("/updateTasks", body);
+    if (isUpdateTitle) {
+      this.hideModal();
+    }
+    ee.emit("reload", "running");
+    if (!isUpdateTitle) {
+      ee.emit("reload", "done");
+    }
+  };
+
+  deleteTask = async task => {
+    await axios.post("/deleteTasks", {
+      taskId: task.id
+    });
+
+    await this.reload(this.props.type);
+  };
+
+  reload = async type => {
+    if (this.props.type !== type) {
+      return;
+    }
+
+    this.setState({ ...defaultState });
 
     await this.handleInfiniteOnLoad();
   };
 
   handleInfiniteOnLoad = async () => {
-    let { list } = this.state;
+    let { list, page } = this.state;
     this.setState({
       loading: true
     });
@@ -90,7 +148,8 @@ class LoadMoreList extends React.Component {
     list = list.concat(res);
     this.setState({
       list,
-      loading: false
+      loading: false,
+      page: page + 1
     });
 
     if (!res.length) {
@@ -111,7 +170,7 @@ class LoadMoreList extends React.Component {
         {isRunning && (
           <div style={{ textAlign: "left", marginBottom: 10 }}>
             <Button type="primary" onClick={() => this.showModal(false)}>
-              Add
+              创建
             </Button>
           </div>
         )}
@@ -122,6 +181,7 @@ class LoadMoreList extends React.Component {
         <div className="task-list">
           <InfiniteScroll
             pageStart={0}
+            threshold={150}
             useWindow={false}
             loadMore={this.handleInfiniteOnLoad}
             hasMore={!loading && hasMore}
@@ -135,18 +195,24 @@ class LoadMoreList extends React.Component {
                       <Button
                         type="link"
                         key="list-loadmore-edit"
-                        onClick={() => this.showModal(true)}
+                        onClick={() => {
+                          this.showModal(true);
+                          this.changeEditTask(item);
+                        }}
                       >
-                        edit
+                        编辑
                       </Button>
                     ) : null,
-                    <Button
-                      type="link"
-                      key="list-loadmore-delete"
-                      onClick={() => this.showModal(true)}
+                    <Popconfirm
+                      title="确定要删除？"
+                      okText="确定"
+                      cancelText="取消"
+                      onConfirm={() => this.deleteTask(item)}
                     >
-                      delete
-                    </Button>
+                      <Button type="link" key="list-loadmore-delete">
+                        删除
+                      </Button>
+                    </Popconfirm>
                   ].filter(o => !!o)}
                 >
                   <Skeleton avatar title={false} loading={false} active>
@@ -159,11 +225,14 @@ class LoadMoreList extends React.Component {
                           }}
                         >
                           <Radio
-                            disabled={!isRunning}
                             checked={!isRunning}
-                            onClick={() => {}}
+                            onClick={() => {
+                              this.changeEditTask(item, () =>
+                                this.updateTask("status")
+                              );
+                            }}
                           />
-                          {item.A}
+                          {item.title}
                         </div>
                       }
                     />
@@ -183,15 +252,17 @@ class LoadMoreList extends React.Component {
           title={isEdit ? "编辑任务" : "创建任务"}
           visible={visable}
           onOk={async () => {
-            return isEdit ? this.editTask() : this.createTask();
+            return isEdit ? this.updateTask("title") : this.createTask();
           }}
           onCancel={this.hideModal}
         >
           <Form>
             <Form.Item>
               <Input
-                value={editTask}
-                onChange={e => this.changeEditTask(e.target.value)}
+                value={editTask.title}
+                onChange={e =>
+                  this.changeEditTask({ ...editTask, title: e.target.value })
+                }
                 placeholder="请输入你要进行的任务"
               />
             </Form.Item>

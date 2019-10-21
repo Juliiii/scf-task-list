@@ -1,8 +1,8 @@
 Resources:
   frontend:
-    Type: 'TencentCloud::Serverless::Namespace'
+    Type: "TencentCloud::Serverless::Namespace"
     login:
-      Type: 'TencentCloud::Serverless::Function'
+      Type: "TencentCloud::Serverless::Function"
       Properties:
         CodeUri: ./
         Type: Event
@@ -14,16 +14,16 @@ Resources:
             DB_DEFAULT: DB1
             DB_DB1_DATABASE: taskapp
             DB_DB1_PASSWORD: TestRoot1234
-            DB_DB1_PORT: '3306'
+            DB_DB1_PORT: "3306"
             DB_DB1_USER: root
             DB_DB1_HOST: 172.16.0.16
             REDIS_HOST: 172.16.0.15
-            REDIS_PORT: '6379'
+            REDIS_PORT: "6379"
             REDIS_PASSWORD: TestRoot1234
         Handler: index.main_handler
         MemorySize: 128
         Runtime: Nodejs8.9
-        Timeout: 3
+        Timeout: 100
         VpcConfig:
           VpcId: vpc-9ul3gvuz
           SubnetId: subnet-do4tbpow

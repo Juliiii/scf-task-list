@@ -9,8 +9,8 @@ const Store = require("./Store");
 const cors = require("koa2-cors");
 
 const app = new Koa();
-app.use(cors());
 
+app.use(cors());
 app.use(bodyParser());
 
 app.use(
@@ -34,8 +34,6 @@ app.use(async (ctx, next) => {
 app.use(async ctx => {
   const { user, password } = ctx.request.body;
 
-  console.log(user);
-
   if (ctx.session.user) {
     throw {
       status: 400,
@@ -49,8 +47,6 @@ app.use(async ctx => {
       "select user, password from users where user = ?",
       [user]
     );
-
-    console.log(result);
 
     if (result.length === 0) {
       throw {

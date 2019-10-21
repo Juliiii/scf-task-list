@@ -111,9 +111,10 @@ class RegistrationForm extends React.Component {
         </Form.Item>
 
         <Form.Item className="sumbit-button-formitem">
-          <Button className="submit-button" type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" className="submit-button">
             Register
           </Button>
+          Or <a href="/login">login now!</a>
         </Form.Item>
       </Form>
     );

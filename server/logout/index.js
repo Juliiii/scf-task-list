@@ -5,29 +5,12 @@ const Koa = require("koa"); // or any supported framework
 const bodyParser = require("koa-bodyparser");
 const session = require("koa-session2");
 const Store = require("./Store");
+const cors = require("koa2-cors");
 
 const app = new Koa();
 
-if (process.env.NODE_ENV !== "production") {
-  process.env["DB_DEFAULT"] = "DB1";
-
-  process.env["DB_DB1_DATABASE"] = "scf_operator";
-
-  process.env["DB_DB1_PASSWORD"] = "Fighting4862-";
-
-  process.env["DB_DB1_PORT"] = 3306;
-
-  process.env["DB_DB1_USER"] = "root";
-
-  process.env["DB_DB1_HOST"] = "localhost";
-
-  process.env["REDIS_HOST"] = "localhost";
-
-  process.env["REDIS_PORT"] = 6379;
-}
-
+app.use(cors());
 app.use(bodyParser());
-
 app.use(
   session({
     store: new Store(),

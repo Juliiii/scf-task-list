@@ -75,6 +75,8 @@ app.use(async ctx => {
   const { title, status } = ctx.request.body;
   const { user } = ctx.session;
 
+  console.log(status, title);
+
   const validateOutput = taskSchema.validate({ title, status });
 
   if (validateOutput.error) {
@@ -88,7 +90,7 @@ app.use(async ctx => {
 
   await connection.queryAsync(
     "insert into tasks (title, status, user) values (?, ?, ?)",
-    [title, +status, user]
+    [title, status, user]
   );
 
   return "新增任务成功";

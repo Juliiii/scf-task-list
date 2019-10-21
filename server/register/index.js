@@ -21,24 +21,6 @@ const userSchema = Joi.object({
 const app = new Koa();
 app.use(cors());
 
-if (process.env.NODE_ENV !== "production") {
-  process.env["DB_DEFAULT"] = "DB1";
-
-  process.env["DB_DB1_DATABASE"] = "scf_operator";
-
-  process.env["DB_DB1_PASSWORD"] = "Fighting4862-";
-
-  process.env["DB_DB1_PORT"] = 3306;
-
-  process.env["DB_DB1_USER"] = "root";
-
-  process.env["DB_DB1_HOST"] = "localhost";
-
-  process.env["REDIS_HOST"] = "localhost";
-
-  process.env["REDIS_PORT"] = 6379;
-}
-
 app.use(bodyParser());
 
 app.use(async (ctx, next) => {
