@@ -4,6 +4,10 @@
 
 前端react + 后端serverless 实现的任务清单网页
 
+## Live Demo
+
+[live demo](https://scftask-1253970226.cos-website.ap-guangzhou.myqcloud.com/login)
+
 ## Frontend
 
 ### How to run
