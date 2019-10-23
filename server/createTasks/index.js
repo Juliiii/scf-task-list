@@ -1,7 +1,6 @@
 "use strict";
-
 const serverless = require("serverless-http");
-const Koa = require("koa"); // or any supported framework
+const Koa = require("koa");
 const bodyParser = require("koa-bodyparser");
 const database = require("scf-nodejs-serverlessdb-sdk").database;
 const Joi = require("joi");
@@ -21,24 +20,6 @@ const taskSchema = Joi.object({
 });
 
 const app = new Koa();
-
-if (process.env.NODE_ENV !== "production") {
-  process.env["DB_DEFAULT"] = "DB1";
-
-  process.env["DB_DB1_DATABASE"] = "scf_operator";
-
-  process.env["DB_DB1_PASSWORD"] = "Fighting4862-";
-
-  process.env["DB_DB1_PORT"] = 3306;
-
-  process.env["DB_DB1_USER"] = "root";
-
-  process.env["DB_DB1_HOST"] = "localhost";
-
-  process.env["REDIS_HOST"] = "localhost";
-
-  process.env["REDIS_PORT"] = 6379;
-}
 
 app.use(bodyParser());
 
@@ -74,8 +55,6 @@ app.use(async (ctx, next) => {
 app.use(async ctx => {
   const { title, status } = ctx.request.body;
   const { user } = ctx.session;
-
-  console.log(status, title);
 
   const validateOutput = taskSchema.validate({ title, status });
 
